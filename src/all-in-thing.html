@@ -1,0 +1,88 @@
+
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/iron-collapse-button/iron-collapse-button.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="all-in-thing">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      [slot="collapse-trigger"] , #action, #abort, #validate{cursor: pointer;}
+      [slot="collapse-content"] {font-size:10px;}
+      input{margin:0;margin-right:10px;}
+    </style>
+    <firebase-document path="/things/[[thingKey]]" data="{{thing}}" on-data-changed="dataChanged" app-name="all-in"></firebase-document>
+
+    <div class="card row">
+      <paper-toggle-button checked$="{{thing.active}}" on-change="toggleActive"></paper-toggle-button>
+      <iron-collapse-button id="collapse" class="flex">
+        <div slot="collapse-trigger" class="flex row">
+          <div id="label" class="flex" style="font-family: 'Pangolin', cursive;">{{thing.label}}</div>
+          <input id="labInput" class="flex" style="height:24px;font-family: 'Pangolin', cursive;" hidden/>
+          <div class="circle" there$="{{thing.there}}" inactive$="{{!thing.active}}"></div>
+        </div>
+        <div slot="collapse-content" class="row">
+          <div id="action" on-click="showInput">modifier</div>
+          <div id="validate" on-click="saveLabel" hidden>valider</div>
+          <div id="abort" on-click="hideInput" style="margin-left:10px;" hidden>annuler</div>
+          <div class="flex" style="text-align:right;">connecté au device : [[thing.device]]</div>
+        </div>
+      </iron-collapse-button>
+    </div>
+  </template>
+
+  <script>
+    class AllInThing extends Polymer.Element {
+      static get is() { return 'all-in-thing'; }
+
+      static get properties() {
+        return {
+          thingKey: String,
+          thing: Object
+        };
+      }
+
+      dataChanged(e){
+        //console.log(e);
+      }
+
+      toggleActive(e){
+        this.set('thing.active',e.target.checked);
+      }
+
+      showInput(e){
+        this.$.label.hidden = true;
+        this.$.labInput.hidden = false;
+        this.$.labInput.value = this.thing.label;
+        this.$.action.hidden = true;
+        this.$.validate.hidden = false;
+        this.$.abort.hidden = false;
+        this.$.collapse.active = false;
+        this.$.labInput.focus();
+      }
+
+      saveLabel(e){
+        this.set('thing.label',this.$.labInput.value);
+        this.hideInput();
+      }
+
+      hideInput(e){
+        this.$.label.hidden = false;
+        this.$.labInput.hidden = true;
+        this.$.labInput.value = '';
+        this.$.action.hidden = false;
+        this.$.validate.hidden = true;
+        this.$.abort.hidden = true;
+        this.$.collapse.active = true;
+      }
+    }
+
+    window.customElements.define(AllInThing.is, AllInThing);
+  </script>
+</dom-module>
